@@ -1,32 +1,4 @@
 function varargout = test(varargin)
-% TEST M-file for test.fig
-%      TEST, by itself, creates a new TEST or raises the existing
-%      singleton*.
-%
-%      H = TEST returns the handle to a new TEST or the handle to
-%      the existing singleton*.
-%
-%      TEST('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in TEST.M with the given input arguments.
-%
-%      TEST('Property','Value',...) creates a new TEST or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before test_OpeningFunction gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to test_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
-
-% Copyright 2002-2003 The MathWorks, Inc.
-
-% Edit the above text to modify the response to help test
-
-% Last Modified by GUIDE v2.5 08-Jul-2021 16:20:31
-
-% Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
