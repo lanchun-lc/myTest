@@ -1,0 +1,908 @@
+function varargout = test(varargin)
+% TEST M-file for test.fig
+%      TEST, by itself, creates a new TEST or raises the existing
+%      singleton*.
+%
+%      H = TEST returns the handle to a new TEST or the handle to
+%      the existing singleton*.
+%
+%      TEST('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in TEST.M with the given input arguments.
+%
+%      TEST('Property','Value',...) creates a new TEST or raises the
+%      existing singleton*.  Starting from the left, property value pairs are
+%      applied to the GUI before test_OpeningFunction gets called.  An
+%      unrecognized property name or invalid value makes property application
+%      stop.  All inputs are passed to test_OpeningFcn via varargin.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Copyright 2002-2003 The MathWorks, Inc.
+
+% Edit the above text to modify the response to help test
+
+% Last Modified by GUIDE v2.5 08-Jul-2021 16:20:31
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @test_OpeningFcn, ...
+                   'gui_OutputFcn',  @test_OutputFcn, ...
+                   'gui_LayoutFcn',  [] , ...
+                   'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+
+% --- Executes just before test is made visible.
+function test_OpeningFcn(hObject, eventdata, handles, varargin)
+handles.output = hObject;
+set(handles.slider2, 'Value',0.99);
+set(handles.slider3, 'Value',0.99);
+guidata(hObject, handles);
+
+
+function varargout = test_OutputFcn(hObject, eventdata, handles) 
+varargout{1} = handles.output;
+
+function openfile_Callback(hObject, eventdata, handles)
+[imgfilename imgpathname]=uigetfile({'*.jpg;*.png;*.jpeg'},'Select a RGB image');
+if isequal(imgfilename,0)|isequal(imgpathname,0)
+    errordlg('No operation','wrong');
+    return;
+else
+    x=imread([imgpathname '\' imgfilename]);
+    axes(handles.axes1);
+    imshow(x);
+    handles.img=x;
+    guidata(hObject,handles)
+end
+
+
+function changeGray_Callback(hObject, eventdata, handles)
+axes(handles.axes2);
+if isrgb(handles.img)
+    imggray=rgb2gray(handles.img);
+    imshow(imggray);
+else
+    msgbox('It is a gray picture');
+end
+
+
+function save_Callback(hObject, eventdata, handles)
+[imgfilename imgpathname] = uiputfile({'*.jpg','JPEG(*.jpg)';
+                                 '*.bmp','Bitmap(*.bmp)';
+                                 '*.gif','GIF(*.gif)';
+                                 '*.*',  'All Files (*.*)'},'Save Picture','Untitled');
+if imgfilename==0
+    return;
+else
+    h=getframe(handles.axes2);
+    imwrite(h.cdata,[imgpathname,imgfilename]);
+end;
+
+
+function pushbutton3_Callback(hObject, eventdata, handles)
+axes(handles.axes2);
+x=(handles.img);
+if isrgb(handles.img)
+    for k=1:3
+        y(:,:,k)=flipud(x(:,:,k));
+    end
+    imshow(y);
+else
+    x=(handles.img);
+    y=flipud(x);
+    imshow(y);
+end
+
+
+function pushbutton4_Callback(hObject, eventdata, handles)
+axes(handles.axes2);
+if isrgb(handles.img)
+    x=(handles.img);
+    for k=1:3
+        y(:,:,k)=fliplr(x(:,:,k));
+    end
+    imshow(y);
+else
+    x=(handles.img);
+    y=fliplr(x);
+    imshow(y);
+end
+
+function erzhi_Callback(hObject, eventdata, handles)
+th = get(handles.erzhi,'Value');
+set(handles.edit1,'String',num2str(round(th*255)));
+handles.binary_thresh = th;
+guidata(hObject, handles)
+
+% --- Executes during object creation, after setting all properties.
+function erzhi_CreateFcn(hObject, eventdata, handles)
+usewhitebg = 1;
+if usewhitebg
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+function edit1_Callback(hObject, eventdata, handles)
+
+% --- Executes during object creation, after setting all properties.
+function edit1_CreateFcn(hObject, eventdata, handles)
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+% --- Executes on button press in erzhibutton.
+function erzhibutton_Callback(hObject, eventdata, handles)
+if isrgb(handles.img)
+    y=rgb2gray(handles.img);
+end
+a=im2double(y);
+binary_img = im2bw(a,handles.binary_thresh);
+%¨
+axes(handles.axes2)
+imshow(binary_img)
+
+
+% --- Executes on button press in pushbutton6.
+function pushbutton6_Callback(hObject, eventdata, handles)
+axes(handles.axes2);
+prompt={''};
+defans={''};
+p=inputdlg(prompt,'input',1,defans);
+p1=str2num(p{1});
+y=imrotate(handles.img,p1);
+imshow(y);
+
+% --- Executes on slider movement.
+function slider2_Callback(hObject, eventdata, handles)
+axes(handles.axes2);
+x=(handles.img);
+handles.beta=get(handles.slider2,'value');
+handles.gm=get(handles.slider3,'value');
+y=imadjust(x,[0 handles.beta],[0 1],handles.gm);
+imshow(y);
+
+% --- Executes during object creation, after setting all properties.
+function slider2_CreateFcn(hObject, eventdata, handles)
+usewhitebg = 1;
+if usewhitebg
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+% --- Executes on slider movement.
+function slider3_Callback(hObject, eventdata, handles)
+axes(handles.axes2);
+x=(handles.img);
+handles.gm=get(handles.slider3,'value');
+handles.beta=get(handles.slider2,'value');
+y=imadjust(x,[0 handles.beta],[0 1],handles.gm);
+imshow(y);
+
+% --- Executes during object creation, after setting all properties.
+function slider3_CreateFcn(hObject, eventdata, handles)
+usewhitebg = 1;
+if usewhitebg
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+
+% --- Executes on button press in cut.
+function cut_Callback(hObject, eventdata, handles)
+set(handles.axes2, 'HandleVisibility' ,'ON');
+axes(handles.axes2);
+y=imcrop(handles.img);
+imshow(y);
+
+
+% --- Executes on button press in pushbutton10.
+function pushbutton10_Callback(hObject, eventdata, handles)
+se=translate(strel(1),[100 60]);
+B=imdilate(handles.img,se);
+axes(handles.axes2);imshow(B);
+
+
+% --- Executes on button press in reset.
+function reset_Callback(hObject, eventdata, handles)
+cla(handles.axes2,'reset');
+
+
+
+% --- Executes on button press in pushbutton19.
+function pushbutton19_Callback(hObject, eventdata, handles)
+%global T
+axes(handles.axes2);
+%T=handles.img;
+fan=imcomplement(handles.img);
+imshow(fan);
+%handles.img=fan;
+%guidata(hObject,handles);
+
+
+% --- Executes on selection change in popupmenu10.
+function popupmenu10_Callback(hObject, eventdata, handles)
+str = get(handles.popupmenu10,'Value');
+axes(handles.axes2)
+switch str
+    case 1
+        prompt={'input:'};
+        defans={'0.2'};
+        p=inputdlg(prompt,'input',1,defans);
+        p1=str2num(p{1});
+        f=imresize(handles.img,p1,'nearest');
+        figure,imshow(f);       
+    case 2
+        prompt={'input:'};
+        defans={'1'};
+        p=inputdlg(prompt,'input',1,defans);
+        p1=str2num(p{1});
+        f=imresize(handles.img,p1,'bilinear');
+        figure,imshow(f);  
+     case 3
+        prompt={'input:'};
+        defans={'1'};
+        p=inputdlg(prompt,'input',1,defans);
+        p1=str2num(p{1});
+        f=imresize(handles.img,p1,'bicubic');
+        figure,imshow(f);  
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu10_CreateFcn(hObject, eventdata, handles)
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+% --- Executes on button press in pushbutton20.
+function pushbutton20_Callback(hObject, eventdata, handles)
+str = get(handles.popupmenu5,'Value');
+axes(handles.axes2);
+if numel(size(handles.img))>2
+    switch str
+        case 1
+            [x y z]=size(handles.img);
+            if z==1
+                rslt=edge(handles.img,'Roberts');
+            elseif z==3
+                    img1=rgb2ycbcr(handles.img);
+                    dx1=edge(img1(:,:,1),'Roberts');
+                    dx1=(dx1*255);
+                    img2(:,:,1)=dx1;
+                    img2(:,:,2)=img1(:,:,2);
+                    img2(:,:,3)=img1(:,:,3);
+                    rslt=ycbcr2rgb(uint8(img2));
+                end
+             imshow(rslt);
+        case 2
+            [x y z]=size(handles.img);
+            if z==1
+                rslt=edge(handles.img,'sobel');
+            elseif z==3
+                    img1=rgb2ycbcr(handles.img);
+                    dx1=edge(img1(:,:,1),'sobel');
+                    dx1=(dx1*255);
+                    img2(:,:,1)=dx1;
+                    img2(:,:,2)=img1(:,:,2);
+                    img2(:,:,3)=img1(:,:,3);
+                    rslt=ycbcr2rgb(uint8(img2));
+                end
+             imshow(rslt);
+        case 3
+            [x y z]=size(handles.img);
+            if z==1
+                rslt=edge(handles.img,'Prewitt');
+            elseif z==3
+                    img1=rgb2ycbcr(handles.img);
+                    dx1=edge(img1(:,:,1),'Prewitt');
+                    dx1=(dx1*255);
+                    img2(:,:,1)=dx1;
+                    img2(:,:,2)=img1(:,:,2);
+                    img2(:,:,3)=img1(:,:,3);
+                    rslt=ycbcr2rgb(uint8(img2));
+                end
+             imshow(rslt);
+         case 4
+            [x y z]=size(handles.img);
+            if z==1
+                rslt=edge(handles.img,'log');
+            elseif z==3
+                    img1=rgb2ycbcr(handles.img);
+                    dx1=edge(img1(:,:,1),'log');
+                    dx1=(dx1*255);
+                    img2(:,:,1)=dx1;
+                    img2(:,:,2)=img1(:,:,2);
+                    img2(:,:,3)=img1(:,:,3);
+                    rslt=ycbcr2rgb(uint8(img2));
+                end
+             imshow(rslt);
+          case 5
+            [x y z]=size(handles.img);
+            if z==1
+                rslt=edge(handles.img,'canny');
+            elseif z==3
+                    img1=rgb2ycbcr(handles.img);
+                    dx1=edge(img1(:,:,1),'canny');
+                    dx1=(dx1*255);
+                    img2(:,:,1)=dx1;
+                    img2(:,:,2)=img1(:,:,2);
+                    img2(:,:,3)=img1(:,:,3);
+                    rslt=ycbcr2rgb(uint8(img2));
+                end
+             imshow(rslt);
+      end
+else
+    g1=handles.img;
+    switch str
+        case 1
+            g2=edge(g1,'Roberts');
+            imshow(g2);
+        case 2
+            g2=edge(g1,'sobel');
+            imshow(g2);
+        case 3
+            g2=edge(g1,'Prewitt');
+            imshow(g2);
+        case 4
+            g2=edge(g1,'log');
+            imshow(g2);
+        case 5
+            g2=edge(g1,'canny');
+            imshow(g2);
+    end
+end
+
+
+% --- Executes on selection change in popupmenu5.
+function popupmenu5_Callback(hObject, eventdata, handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu5_CreateFcn(hObject, eventdata, handles)
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+% --- Executes on button press in pushbutton21.
+function pushbutton21_Callback(hObject, eventdata, handles)
+str=get(handles.popupmenu6,'value');
+axes(handles.axes2);
+switch str
+    case 1
+        prompt={''};
+        defans={'3'};
+        p=inputdlg(prompt,'input',1,defans);
+        p1=str2num(p{1});
+        h1=fspecial('average',[p1,p1]);
+        I=imfilter(handles.img,h1);
+        imshow(I);
+    case 2
+        prompt={''};
+        defans={'3'};
+        p=inputdlg(prompt,'input',1,defans);
+        p1=str2num(p{1});
+        if numel(size(handles.img))>2
+            A=handles.img;
+            R=A(:,:,1);
+            G=A(:,:,2);
+            B=A(:,:,3);
+            GP(:,:,1)=medfilt2(R,[p1 p1]);
+            GP(:,:,2)=medfilt2(G,[p1 p1]);
+            GP(:,:,3)=medfilt2(B,[p1 p1]);
+            imshow(GP);
+        else
+            A=handles.img;
+            I=medfilt2(A,[p1 p1]);
+            imshow(I);
+        end
+end
+        
+
+% --- Executes on button press in pushbutton22.
+function pushbutton22_Callback(hObject, eventdata, handles)
+str = get(handles.popupmenu7,'Value');
+axes(handles.axes2);
+switch str
+    case 1
+        h=fspecial('sobel');
+    case 2
+        h=fspecial('prewitt');
+    case 3
+        h=fspecial('laplacian');
+end
+if numel(size(handles.img))>2
+    R=handles.img(:,:,1);
+    G=handles.img(:,:,2);
+    B=handles.img(:,:,3);
+    R1=imfilter(R,h);
+    GP(:,:,1)=imadd(R,R1);
+    G1=imfilter(G,h);
+    GP(:,:,2)=imadd(G,G1);
+    B1=imfilter(B,h);
+    GP(:,:,3)=imadd(B,B1);
+    imshow(GP);
+else
+    g1=handles.img;
+    g2=imfilter(g1,h);
+    g3=imfilter(g2,g1);
+    imshow(g3);
+end
+
+
+function popupmenu6_Callback(hObject, eventdata, handles)
+
+function popupmenu6_CreateFcn(hObject, eventdata, handles)
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+% --- Executes on selection change in popupmenu7.
+function popupmenu7_Callback(hObject, eventdata, handles)
+
+function popupmenu7_CreateFcn(hObject, eventdata, handles)
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+% --- Executes on button press in pushbutton25.
+function pushbutton25_Callback(hObject, eventdata, handles)
+axes(handles.axes2);
+prompt={'please input number:'};
+defans={'0.5'};
+p=inputdlg(prompt,'input',1,defans);
+p1=str2num(p{1});
+jiaoyan=imnoise(handles.img,'salt & pepper',p1);
+imshow(jiaoyan);
+
+% --- Executes on button press in pushbutton26.
+function pushbutton26_Callback(hObject, eventdata, handles)
+axes(handles.axes2);
+prompt={'please input number1:','please input number2:'};
+defans={'0.1','0.2'};
+p=inputdlg(prompt,'input',1,defans);
+p1=str2num(p{1});
+p2=str2num(p{2});
+gaosi=imnoise(handles.img,'gaussian',p1,p2);
+imshow(gaosi);
+
+% --- Executes on button press in pushbutton27.
+function pushbutton27_Callback(hObject, eventdata, handles)
+temp={'Length:'};
+defans={'2'};
+p=inputdlg(temp,'input',1,defans);
+p1=str2num(p{1});
+se=strel('line',p1,0);
+pengzhang=imerode(handles.img,se);
+axes(handles.axes2);
+imshow(pengzhang);
+
+% --------------------------------------------------
+function pushbutton28_Callback(hObject, eventdata, handles)
+temp={'Range:'};
+defans={'2'};
+p=inputdlg(temp,'input',1,defans);
+p1=str2num(p{1});
+se=strel('disk',p1);
+fushi=imerode(handles.img,se);
+axes(handles.axes2);
+imshow(fushi);
+
+% --------------------------------------------------
+function pushbutton29_Callback(hObject, eventdata, handles)
+axes(handles.axes2);
+prompt={'please input number:'};
+defans={'0.2'};
+p=inputdlg(prompt,'input',1,defans);
+p1=str2num(p{1});
+chengxing=imnoise(handles.img,'speckle',p1);
+imshow(chengxing);
+
+% --------------------------------------------------
+function popupmenu11_Callback(hObject, eventdata, handles)
+str = get(handles.popupmenu11,'Value');
+set(handles.axes4,'HandleVisibility','ON');
+axes(handles.axes4)
+switch str
+    case 1
+        x=imhist(handles.img(:,:,1));
+        x1=x(1:10:256);
+        horz=1:10:256;
+        bar(horz,x1);
+        set(handles.axes4,'xtick',0:50:255);
+    case 2
+        if isrgb(handles.img)
+        x=imhist(handles.img(:,:,2));
+        x1=x(1:10:256);
+        horz=1:10:256;
+        bar(horz,x1);
+        set(handles.axes4,'xtick',0:50:255);
+        else
+            msgbox('It is gray picture','Faild');
+        end
+    case 3
+        if isrgb(handles.img)
+        x=imhist(handles.img(:,:,3));
+        x1=x(1:10:256);
+        horz=1:10:256;
+        bar(horz,x1);
+        set(handles.axes4,'xtick',0:50:255);
+        else
+            msgbox('It is gray picture','Faild');
+        end
+end
+
+% --------------------------------------------------
+function popupmenu11_CreateFcn(hObject, eventdata, handles)
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+% --------------------------------------------------
+function pushbutton30_Callback(hObject, eventdata, handles)
+set(handles.axes2,'HandleVisibility','ON');
+axes(handles.axes2)
+if isrgb(handles.img)
+    a=histeq(handles.img(:,:,1));
+    b=histeq(handles.img(:,:,2));
+    c=histeq(handles.img(:,:,3));
+    k(:,:,1)=a;
+    k(:,:,2)=b;
+    k(:,:,3)=c;
+    imshow(k);
+else
+    h=histeq(handles.img);
+    imshow(h);
+end
+
+
+function popupmenu12_Callback(hObject, eventdata, handles)
+str = get(handles.popupmenu12,'Value');
+set(handles.axes2,'HandleVisibility','ON');
+axes(handles.axes2)
+if isrgb(handles.img)
+    y=rgb2gray(handles.img);
+end
+switch str
+    case 1
+        f = handles.img;
+        f = imnoise(f,'gaussian');
+        count = 0;
+        T = mean2(f);
+        done = false;
+        while ~done
+        count  = count+1;
+        g = f>T;
+        Tnext = 0.5*(mean(f(g))+mean(f(~g)));
+        done = abs(T-Tnext)<0.5;
+        T =Tnext;
+        end
+        count
+        T
+        g = im2bw(f,T/255);
+        figure;subplot(131),imshow(f),title('Image with noise');
+        subplot(132),imhist(y),title('Histogram of image');
+        subplot(133),imshow(g),title('Result')
+    case 2
+        f2 = handles.img;
+        figure;subplot(221),imshow(f2),title('Original Image');
+        subplot(222),imhist(y),title('Original image histogram');
+        count = 0;
+        T = mean2(f2);
+        done = false;
+        while ~done
+        count  = count+1;
+        g = f2>T;
+        Tnext = 0.5*(mean(f2(g))+mean(f2(~g)));
+        done = abs(T-Tnext)<0.5;
+        T =Tnext;
+        end
+        g = im2bw(f2,T/255);
+        subplot(223),imshow(g,[]),title('Basic global algorithm');
+        I=rgb2gray(f2);
+        T=graythresh(I);
+        L = uint8(T*255);
+        Ibw2 = im2bw(I,T);   
+        subplot(224),imshow(Ibw2 ),title('Otsu`s algorithm')
+    case 3
+        f =handles.img;
+        figure;subplot(241),imshow(f),title('Original Image');
+        fn = imnoise(f,'gaussian',0,0.038);
+        y=rgb2gray(fn);
+        subplot(242),imshow(fn),title('Images with Gaussian noise');
+        subplot(243),imhist(y),title('Histogram of image with Gaussian noise');
+        Tn = graythresh(fn);
+        gn = im2bw(fn,Tn);
+        subplot(244),imshow(gn),title('Otsu`s algorithm');
+        w = fspecial('average',5);
+        fa = imfilter(fn,w,'replicate');
+        subplot(245),imshow(fa),title('Smoothed image');
+        subplot(246),imhist(y),title('Histogram of Smoothed image');
+        Ta = graythresh(fa);
+        ga =im2bw(fa,Ta);
+        subplot(247),imshow(ga),title('After smoothing and using Otsu`s');  
+end
+
+% --------------------------------------------------
+function popupmenu12_CreateFcn(hObject, eventdata, handles)
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+function pushbutton32_Callback(hObject, eventdata, handles)
+[h,w,k]=size(handles.img);
+zero=zeros(h,w);  
+figure;
+subplot(221),imshow(handles.img),title('Original Picture');
+        imageR = handles.img(:,:,1);
+        subplot(222),imshow(cat(3,imageR,zero,zero)),title('R');
+        imageG = handles.img(:,:,2);
+        subplot(223),imshow(cat(3,zero,imageG,zero)),title('G');
+        imageB = handles.img(:,:,3);
+        subplot(224),imshow(cat(3,zero,zero,imageB)),title('B');
+
+function pushbutton33_Callback(hObject, eventdata, handles)
+str = get(handles.popupmenu13,'Value');
+axes(handles.axes2)
+switch str
+    case 1
+        RGB=handles.img;
+        HSV=rgb2hsv(RGB);
+        imshow(HSV);
+    case 2
+        RGB=handles.img;
+        YIQ=rgb2ntsc(RGB);
+        figure,
+        subplot(2,3,1);
+        subimage(RGB);
+        title('RGB');
+        subplot(2,3,2);
+        subimage(mat2gray(YIQ));
+        title('NTSC');
+        subplot(2,3,3);
+        subimage(mat2gray(YIQ(:,:,1)));
+        title('Y');
+        subplot(2,3,4);
+        subimage(mat2gray(YIQ(:,:,2)));
+        title('I');
+        subplot(2,3,5);
+        subimage(mat2gray(YIQ(:,:,3)));
+        title('Q');
+    case 3
+        RGB=handles.img;
+        YCbCr=rgb2ycbcr(RGB);
+        imshow(YCbCr);
+end
+
+
+% --------------------------------------------------
+function pushbutton34_Callback(hObject, eventdata, handles)
+axes(handles.axes2);
+w = [-1 -1 -1;-1 8 -1;-1 -1 -1];
+g = imfilter(handles.img,w);
+imshow(g);
+
+
+% --------------------------------------------------
+function pushbutton35_Callback(hObject, eventdata, handles)
+%f = handles.img;
+% figure;subplot(231),imshow(f),title('');
+% w = [2 -1 -1;-1 2 -1;-1 -1 2];
+% g = imfilter(f,w);
+% subplot(232),imshow(g,[]),title('45¨¨');
+% gtop = g(1:120,1:120);
+% gtop = pixeldup(gtop,4);
+% subplot(233),imshow(gtop,[]),title('¨¤¨');
+% gbot = g(end -119:end,end -119:end);
+% gbot = pixeldup(gbot,4);
+% subplot(234),imshow(gbot,[]),title('¤¨');
+% g =abs(g);
+% subplot(235),imshow(g,[]),title('');
+% T =max(g(:));
+% g =g >=T;
+% subplot(236),imshow(g),title('¨¨g>=T');
+axes(handles.axes2);
+I=im2double(handles.img);
+[M,N]=size(I);
+% L_Horizontal=[-1 -1 -1;2 2 2;-1 -1 -1];
+L_45=[2 -1 -1;-1 2 -1;-1 -1 2;];
+% L_Vertical=[-1 2 -1;-1 2 -1;-1 2 -1];
+% L_135=[-1 -1 2;-1 2 -1 ;2 -1 -1];
+%n=3;
+% g_Horizontal=zeros(M,N);
+g_45=zeros(M,N);
+% g_Vertical=zeros(M,N);
+% g_135=zeros(M,N);
+n_l=1;
+I_pad=padarray(I,[n_l,n_l],'symmetric');
+T=0.89903;
+for i=1:M
+    for j=1:N
+        Block=I_pad(i:i+2*n_l,j:j+2*n_l);
+        g_45(i,j)=sum(sum(-L_45.*Block));
+    end
+end
+imshow(g_45);
+
+function popupmenu13_Callback(hObject, eventdata, handles)
+
+% --------------------------------------------------
+function popupmenu13_CreateFcn(hObject, eventdata, handles)
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+function pushbutton37_Callback(hObject, eventdata, handles)
+pic=rgb2gray(handles.img);
+bw=edge(pic,'canny');
+se = strel('line',3,0);
+bwd=imdilate(bw,se);
+figure,subplot(121),imshow(bwd);title('ì');
+d=imcomplement(bwd);
+subplot(122),imshow(d);
+title('') 
+
+
+% --- Executes on button press in pushbutton39.
+function pushbutton39_Callback(hObject, eventdata, handles)
+img=handles.img;
+if numel(size(img))>2
+    yuantu=rgb2gray(img);
+else
+    yuantu=img;
+end
+str = get(handles.popupmenu14,'Value');
+axes(handles.axes2)
+switch str
+    case 1
+F=fft2(yuantu);
+F1=log(abs(F)+1);
+Fs=fftshift(F); 
+S=log(abs(Fs)+1);
+fr=real(ifft2(ifftshift(Fs)));
+ret=im2uint8(mat2gray(fr));
+axes(handles.axes2)
+imshow(ret);
+    case 2
+A=imread('C:\MATLAB7\work\Ttest\endClass\images\rr.jpg','jpg');
+axes(handles.axes1)
+imshow(A);
+B=fftshift(fft2(A));
+E=ifft2(B);
+[X,MAP]=imread('C:\MATLAB7\work\Ttest\endClass\images\rr.jpg','jpg');
+[m,n]=size(X);
+H1=zeros(m,n);
+H1(m/2:m,n/2:n)=1;
+LOWPASS1=B.*H1;
+C=ifft2(LOWPASS1);
+axes(handles.axes2)
+imshow(log(abs(C)),[],'notruesize');
+    case 3
+     A=imread('C:\MATLAB7\work\Ttest\endClass\images\rr.jpg','jpg');
+     axes(handles.axes1)
+imshow(A);
+B=fftshift(fft2(A));
+E=ifft2(B);
+[X,MAP]=imread('C:\MATLAB7\work\Ttest\endClass\images\rr.jpg','jpg');
+[m,n]=size(X);
+H2=zeros(m,n);
+H2(m/10:m,n/10:n)=1;
+LOWPASS2=B.*H2;
+D=ifft2(LOWPASS2);
+axes(handles.axes2)
+imshow(log(abs(D)),[],'notruesize');
+    case 4
+          A=imread('C:\MATLAB7\work\Ttest\endClass\images\rr.jpg','jpg');
+     axes(handles.axes1)
+imshow(A);
+B=fftshift(fft2(A));
+E=ifft2(B);
+[X,MAP]=imread('C:\MATLAB7\work\Ttest\endClass\images\rr.jpg');
+[m,n]=size(X);
+H1=ones(m,n);
+H1(m/3:m*2/3,n/3:n*2/3)=0;
+LOWPASS1=B.*H1;
+C=ifft2(LOWPASS1);
+axes(handles.axes2)
+imshow(log(abs(C)),[],'notruesize');
+    case 5
+         A=imread('C:\MATLAB7\work\Ttest\endClass\images\rr.jpg','jpg');
+     axes(handles.axes1)
+imshow(A);
+B=fftshift(fft2(A));
+E=ifft2(B);
+[X,MAP]=imread('C:\MATLAB7\work\Ttest\endClass\images\rr.jpg','jpg');
+[m,n]=size(X);
+H2=ones(m,n);
+H2(m*3/5:m,n*3/5:n)=0;
+LOWPASS2=B.*H2;
+D=ifft2(LOWPASS2);
+axes(handles.axes2)
+imshow(log(abs(D)),[],'notruesize');
+    case 6
+          I=imread('C:\MATLAB7\work\Ttest\endClass\images\rr.jpg','jpg');
+          A=fftshift(fft2(I));
+          d0=100;
+          N=8;
+          [m,n]=size(A);
+          h=zeros(m,n);
+          [a,b]=size(I);
+          H=zeros(a,b);
+          H(a/4:3*a/4,b/4:3*b/4)=1;
+          for i=1:m
+              for j=1:n
+                  d(i,j)=sqrt(i^2+j^2);
+                  h(i,j)=1/(1+(d(i,j)/d0)^(2*N));
+              end
+          end
+          low2=A.*h;
+          C=ifft2(low2);
+          axes(handles.axes2)
+imshow(uint8(abs(C)),[],'notruesize');
+end
+
+% --- Executes on selection change in popupmenu14.
+function popupmenu14_Callback(hObject, eventdata, handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu14_CreateFcn(hObject, eventdata, handles)
+if ispc
+    set(hObject,'BackgroundColor','white');
+else
+    set(hObject,'BackgroundColor',get(0,'defaultUicontrolBackgroundColor'));
+end
+
+
+% --- Executes on button press in pushbutton40.
+function pushbutton40_Callback(hObject, eventdata, handles)
+axes(handles.axes2)
+IM=handles.img;
+se=strel('disk',10);
+IM2=imtophat(IM,se);
+imshow(IM2);
+
+
